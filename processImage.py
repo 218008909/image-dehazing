@@ -12,7 +12,7 @@ import networkLayout
 
 
 def process(img):
-	# Load image and fomrat
+	# Load image and format
 	hazyPhoto = (torch.from_numpy(numpy.asarray(PIL.Image.open(settings.inputDirectory + "\\" + img))/255.0)).float().permute(2,0,1).cuda().unsqueeze(0)
 	# Initialise instance of network
 	N = networkLayout.network().cuda()
@@ -31,8 +31,10 @@ def process(img):
 		# Otherwise, process image with optimal model
 		N.load_state_dict(torch.load(settings.modelDirectory + models[0]))
 		clearPhoto = N(hazyPhoto)
-		torchvision.utils.save_image(torch.cat((hazyPhoto, clearPhoto), 0), settings.outputDirectory + "Comparison" + img)
-		torchvision.utils.save_image(clearPhoto, settings.outputDirectory + models[0] + img)
+		if not (settings.comparisonMode==1):
+			torchvision.utils.save_image(clearPhoto, settings.outputDirectory + models[0] + img)
+		if (settings.comparisonMode>0):
+			torchvision.utils.save_image(torch.cat((hazyPhoto, clearPhoto), 0), settings.outputDirectory + "Comparison" + img)
 		print(img + "saved!")
 
 

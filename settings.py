@@ -5,6 +5,7 @@ clearDirectory = "clear/"
 hazyDirectory = "hazy/"
 testingDirectory = "test/"
 modelDirectory = "models/"
+logDirectory = "logs/"
 inputDirectory = "input/"
 outputDirectory = "output/"
 
@@ -12,12 +13,14 @@ outputDirectory = "output/"
 learningRate = 0.0001
 weightDecay = 0.0001
 workerNum = 4
-epochNum = 10       # train model for x epochs
-clipValue = 0.1     # clip normal gradient value
-displayPeriod = 60  # display loss every x iterations
-savePeriod = 60     # save model every x iterations
-batchSize = 8       # size of batches to process
-trainingRatio = 0.9 # percentage of data used for training, as opposed to testing
+epochNum = 10           # train model for x epochs
+clipValue = 0.1         # clip normal gradient value
+batchSize = 2           # size of batches to process
+trainingRatio = 0.9     # percentage of data used for training, as opposed to testing
 
-# testing values
-progressDisplay = 1  # toggles whether or not training progress images are generated
+# program behaviour
+displayPeriod = 600      # display loss every x iterations
+savePeriod = 6000         # save model every x iterations (model is saved at completion regardless)
+comparisonMode = 2     # 0: Output Image | 1: Output Comparison | 2: Output Image and Comparison
+progressDisplay = 0     # toggles whether or not training progress images are generated (always generate comparison if 1)
+

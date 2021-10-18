@@ -29,6 +29,8 @@ def setup():
 		os.mkdir(settings.outputDirectory)  # output
 	if not (os.path.exists(settings.modelDirectory)):
 		os.mkdir(settings.modelDirectory)  # model
+	if not (os.path.exists(settings.logDirectory)):
+		os.mkdir(settings.logDirectory)  # log
 	if not (os.path.exists(settings.testingDirectory)):
 		os.mkdir(settings.testingDirectory)  # testing
 	if not (os.path.exists(settings.clearDirectory)):
