@@ -10,7 +10,6 @@ import torch.nn
 import torch.optim
 import torch.utils.data
 import time
-import torchvision
 
 # add custom libraries
 import settings
@@ -23,47 +22,25 @@ def train():
     N.train()
     # Get dataset objects and convert to dataloaders
     datasetTraining, datasetTesting = compilePhotos()
-    loaderTraining = torch.utils.data.DataLoader(datasetTraining, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
+    # loaderTraining = torch.utils.data.DataLoader(datasetTraining, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
     loaderTesting = torch.utils.data.DataLoader(datasetTesting, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
     # Define model evaluation criterion and optimizer (comment in chosen loss function)
     criterion = torch.nn.MSELoss().cuda()
-    #criterion = torch.nn.HuberLoss().cuda()
     # criterion = piq.SSIMLoss().cuda()
-    optimizer = torch.optim.Adam(N.parameters(), lr = settings.learningRate, weight_decay = settings.weightDecay)
     # Loop through epochs
     count = 0
-    log = open(settings.logDirectory + time.strftime("%Y.%m.%d_%H.%M") + "_Log.txt", 'w')
-    for epoch in range(settings.epochNum):
-        # Loop through images, training
-        lineEpoch = "\nEpoch " + str(epoch)
-        print(lineEpoch)
-        log.write(lineEpoch)
-        for (clearImg, hazyImg) in loaderTraining:
-            count = count + 1
-            clearImg = clearImg.cuda()
-            hazyImg = hazyImg.cuda()
-            # Dehaze, then adjust based on loss
-            dehazedImg = N(hazyImg)
-            # loss = customSSIMLoss(dehazedImg, clearImg).cuda()
-            loss = criterion(dehazedImg, clearImg).cuda()
-            optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(N.parameters(), settings.clipValue)
-            optimizer.step()
-            # Display and Save, based on user settings
-            if ((count % settings.displayPeriod) == 0):
-                lineIteration = "\nIteration: " + str(count) + " Loss: " + str(loss.item()) + " SSIM: " + str(piq.ssim(dehazedImg, clearImg, data_range = 1).item())
-                print(lineIteration)
-                #log.write(lineIteration)
-            if ((count % settings.savePeriod) == 0):
-                torch.save(N.state_dict(), settings.modelDirectory + "incompleteModel" + str(round((count/settings.savePeriod))) + ".pth")
-        # Loop through images, testing
-        countB = 0
+    models = os.listdir(settings.modelDirectory)
+    for model in models:
+        title = "SOTS" + model + time.strftime("%Y.%m.%d_%H.%M") + "_Log.txt"
+        print("\n", title)
+        log = open(settings.logDirectory + title, 'w')
+        count = 0
         SSIMTotal = 0
         MSETotal = 0
         # Process training set
+        N.load_state_dict(torch.load(settings.modelDirectory + model))
         for (clearImg, hazyImg) in loaderTesting:
-            countB = countB + 1
+            count = count + 1
             clearImg = clearImg.cuda()
             hazyImg = hazyImg.cuda()
             dehazedImg = N(hazyImg)
@@ -73,20 +50,20 @@ def train():
             '''
             SSIMTotal = SSIMTotal + piq.ssim(dehazedImg, clearImg, data_range = 1).item()
             MSETotal = MSETotal + criterion(dehazedImg, clearImg).item()
-        lineSSIM = "\nSSIM: " + str(SSIMTotal/countB)
-        print(lineSSIM)
-        log.write(lineSSIM)
-        lineMSE = "\nMSE: " + str(MSETotal/countB)
-        log.write(lineMSE)
-        print(lineMSE)
-        linePSNR = "\nPSNR: " + str(10*math.log10(1/(MSETotal/countB)))
-        print(linePSNR)
-        log.write(linePSNR)
-        print("---------")
-        log.write("\n---------")
-    # Save final model and output to log file
-    torch.save(N.state_dict(), settings.modelDirectory + "completeModel.pth")
-    log.close()
+            # Save final model and output to log file
+            torch.save(N.state_dict(), settings.modelDirectory + "completeModel.pth")
+            lineSSIM = "\nSSIM: " + str(SSIMTotal/count)
+            print(lineSSIM)
+            log.write(lineSSIM)
+            lineMSE = "\nMSE: " + str(MSETotal/count)
+            log.write(lineMSE)
+            print(lineMSE)
+            linePSNR = "\nPSNR: " + str(10*math.log10(1/(MSETotal/count)))
+            print(linePSNR)
+            log.write(linePSNR)
+            print("---------")
+            log.write("\n---------")
+        log.close()
 
 
 def compilePhotos():
@@ -101,7 +78,7 @@ def compilePhotos():
     for clearImg in clearList:
         masterList[clearImg] = []
     for hazyImg in hazyList:
-        ID = hazyImg.split("_")[0] + "_" + hazyImg.split("_")[1] + ".jpg"
+        ID = hazyImg.split("_")[0] + "_" + hazyImg.split("_")[1] + ".png"
         masterList[ID].append(hazyImg)
 
     # Sort data into lists
@@ -109,7 +86,7 @@ def compilePhotos():
     for key in masterList.keys():
         for img in masterList[key]:
             i = i + 1
-            if i < (len(hazyList)*settings.trainingRatio):
+            if i < 0:
                 listTraining.append([key, img])
             else:
                 listTesting.append([key, img])

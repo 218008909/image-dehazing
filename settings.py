@@ -1,8 +1,8 @@
 # Adjust the following parameters to change program behaviour
 
 # directories
-clearDirectory = "clear/"
-hazyDirectory = "hazy/"
+clearDirectory = "clearNYU2/"
+hazyDirectory = "hazyNYU2/"
 testingDirectory = "test/"
 modelDirectory = "models/"
 logDirectory = "logs/"
@@ -19,8 +19,8 @@ batchSize = 2           # size of batches to process
 trainingRatio = 0.9     # percentage of data used for training, as opposed to testing
 
 # program behaviour
-displayPeriod = 600      # display loss every x iterations
-savePeriod = 6000         # save model every x iterations (model is saved at completion regardless)
+displayPeriod = 100      # display loss every x iterations
+savePeriod = 10000         # save model every x iterations (model is saved at completion regardless)
 comparisonMode = 2     # 0: Output Image | 1: Output Comparison | 2: Output Image and Comparison
-progressDisplay = 0     # toggles whether or not training progress images are generated (always generate comparison if 1)
+progressDisplay = 0     # toggles whether or not training progress images are generated when processing
 

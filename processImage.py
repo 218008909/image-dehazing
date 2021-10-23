@@ -25,7 +25,10 @@ def process(img):
 		for model in models:
 			N.load_state_dict(torch.load(settings.modelDirectory + model))
 			clearPhoto = N(hazyPhoto)
-			torchvision.utils.save_image(torch.cat((hazyPhoto, clearPhoto), 0), settings.outputDirectory + img + model + img)
+			if not (settings.comparisonMode == 1):
+				torchvision.utils.save_image(clearPhoto, settings.outputDirectory + img + model + img)
+			if (settings.comparisonMode > 0):
+				torchvision.utils.save_image(torch.cat((hazyPhoto, clearPhoto), 0), settings.outputDirectory + "Comparison" + img + model + img)
 			print(model + img + "saved!")
 	else:
 		# Otherwise, process image with optimal model
