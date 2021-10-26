@@ -1,6 +1,11 @@
 # image-dehazing
 ## pytorch implementation of an image dehazing solution
 
+### Prerequisites
+* installation of python3
+* run `pip3 install -r requirements.txt`
+
+
 ### Instructions
 * view `settings.py` to see directories and select mode
 * optionally run `trainModel.py` to train, if you have a hazy/clear dataset  
