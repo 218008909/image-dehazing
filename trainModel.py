@@ -16,24 +16,24 @@ import torchvision
 import settings
 import networkLayout
 
-
-def train():
+def train(bS=settings.batchSize, tR=settings.trainingRatio, cV=settings.clipValue, eN=settings.epochNum, lR=settings.learningRate, wD=settings.weightDecay, exp=""):
+    print(exp)
     # Create network object and set to training mode
     N = networkLayout.network().cuda()
     N.train()
     # Get dataset objects and convert to dataloaders
-    datasetTraining, datasetTesting = compilePhotos()
-    loaderTraining = torch.utils.data.DataLoader(datasetTraining, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
-    loaderTesting = torch.utils.data.DataLoader(datasetTesting, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
+    datasetTraining, datasetTesting = compilePhotos(tR=tR)
+    loaderTraining = torch.utils.data.DataLoader(datasetTraining, batch_size=bS, shuffle = True, num_workers=settings.workerNum, pin_memory=True)
+    loaderTesting = torch.utils.data.DataLoader(datasetTesting, batch_size=bS, shuffle = True, num_workers=settings.workerNum, pin_memory=True)
     # Define model evaluation criterion and optimizer (comment in chosen loss function)
     criterion = torch.nn.MSELoss().cuda()
-    #criterion = torch.nn.HuberLoss().cuda()
-    # criterion = piq.SSIMLoss().cuda()
-    optimizer = torch.optim.Adam(N.parameters(), lr = settings.learningRate, weight_decay = settings.weightDecay)
+        # criterion = torch.nn.HuberLoss().cuda()
+        # criterion = piq.SSIMLoss().cuda()
+    optimizer = torch.optim.Adam(N.parameters(), lr=lR, weight_decay=wD)
     # Loop through epochs
     count = 0
-    log = open(settings.logDirectory + time.strftime("%Y.%m.%d_%H.%M") + "_Log.txt", 'w')
-    for epoch in range(settings.epochNum):
+    log = open(settings.logDirectory + exp + time.strftime("%Y.%m.%d_%H.%M") + "_Log.txt", 'w')
+    for epoch in range(eN):
         # Loop through images, training
         lineEpoch = "\nEpoch " + str(epoch)
         print(lineEpoch)
@@ -48,7 +48,7 @@ def train():
             loss = criterion(dehazedImg, clearImg).cuda()
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(N.parameters(), settings.clipValue)
+            torch.nn.utils.clip_grad_norm_(N.parameters(), cV)
             optimizer.step()
             # Display and Save, based on user settings
             if ((count % settings.displayPeriod) == 0):
@@ -56,7 +56,7 @@ def train():
                 print(lineIteration)
                 #log.write(lineIteration)
             if ((count % settings.savePeriod) == 0):
-                torch.save(N.state_dict(), settings.modelDirectory + "incompleteModel" + str(round((count/settings.savePeriod))) + ".pth")
+                torch.save(N.state_dict(), settings.modelDirectory + exp + "incompleteModel" + str(round((count/settings.savePeriod))) + ".pth")
         # Loop through images, testing
         countB = 0
         SSIMTotal = 0
@@ -85,11 +85,11 @@ def train():
         print("---------")
         log.write("\n---------")
     # Save final model and output to log file
-    torch.save(N.state_dict(), settings.modelDirectory + "completeModel.pth")
+    torch.save(N.state_dict(), settings.modelDirectory + exp + "completeModel.pth")
     log.close()
 
 
-def compilePhotos():
+def compilePhotos(tR):
     # Create lists
     listTraining = []
     listTesting = []
@@ -101,7 +101,7 @@ def compilePhotos():
     for clearImg in clearList:
         masterList[clearImg] = []
     for hazyImg in hazyList:
-        ID = hazyImg.split("_")[0] + "_" + hazyImg.split("_")[1] + ".jpg"
+        ID = hazyImg.split("_")[0] + "_" + hazyImg.split("_")[1] + settings.fileExtension
         masterList[ID].append(hazyImg)
 
     # Sort data into lists
@@ -109,7 +109,7 @@ def compilePhotos():
     for key in masterList.keys():
         for img in masterList[key]:
             i = i + 1
-            if i < (len(hazyList)*settings.trainingRatio):
+            if i < (len(hazyList)*tR):
                 listTraining.append([key, img])
             else:
                 listTesting.append([key, img])
@@ -140,26 +140,8 @@ class datasetPhotos(torch.utils.data.Dataset):
         hazyImg = (torch.from_numpy((numpy.asarray(PIL.Image.open(settings.hazyDirectory + "\\" + hazy).resize((480, 640),PIL.Image.ANTIALIAS)) / 255.0))).float().permute(2, 0, 1)
         return clearImg, hazyImg
 
-r''' Custom SSIM calculation attempt, does not function correctly
-def customSSIMLoss(prediction, truth):
-    R = 1
-    meanx = torch.mean(prediction)
-    meany = torch.mean(truth)
-    variancex = torch.var(prediction)
-    variancey = torch.var(truth)
-    covariancexy = torch.sqrt(variancex) * torch.sqrt(variancey)
-    A = (2*meanx*meany) + ((0.01*R)**2)
-    B = 2*(covariancexy**2) + ((0.03*R)**2)
-    C = (meanx**2) + (meany**2)
-    C = C + (0.01*R)**2
-    D = (variancex**2) + (variancey**2)
-    D = D + (0.03*R)**2
-    E = (A*B)
-    F = (C*D)
-    val = E/F
-    return 1 - val
-'''
 
 if __name__ == "__main__":
+    # Set up directories and train with parameters from settings.py
     networkLayout.setup()
     train()

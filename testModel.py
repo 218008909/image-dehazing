@@ -16,10 +16,10 @@ import settings
 import networkLayout
 
 
-def train():
+def test():
     # Create network object and set to training mode
     N = networkLayout.network().cuda()
-    N.train()
+    N.eval()
     # Get dataset objects and convert to dataloaders
     datasetTraining, datasetTesting = compilePhotos()
     # loaderTraining = torch.utils.data.DataLoader(datasetTraining, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
@@ -31,7 +31,7 @@ def train():
     count = 0
     models = os.listdir(settings.modelDirectory)
     for model in models:
-        title = "SOTS" + model + time.strftime("%Y.%m.%d_%H.%M") + "_Log.txt"
+        title = model + time.strftime("%Y.%m.%d_%H.%M") + "_Log___Test.txt"
         print("\n", title)
         log = open(settings.logDirectory + title, 'w')
         count = 0
@@ -50,19 +50,21 @@ def train():
             '''
             SSIMTotal = SSIMTotal + piq.ssim(dehazedImg, clearImg, data_range = 1).item()
             MSETotal = MSETotal + criterion(dehazedImg, clearImg).item()
-            # Save final model and output to log file
-            torch.save(N.state_dict(), settings.modelDirectory + "completeModel.pth")
-            lineSSIM = "\nSSIM: " + str(SSIMTotal/count)
-            print(lineSSIM)
-            log.write(lineSSIM)
-            lineMSE = "\nMSE: " + str(MSETotal/count)
-            log.write(lineMSE)
-            print(lineMSE)
-            linePSNR = "\nPSNR: " + str(10*math.log10(1/(MSETotal/count)))
-            print(linePSNR)
-            log.write(linePSNR)
-            print("---------")
-            log.write("\n---------")
+        # Save final model and output to log file
+        # torch.save(N.state_dict(), settings.modelDirectory + "completeModel.pth")
+            # Optionally indent from here
+        lineSSIM = "\nSSIM: " + str(SSIMTotal/count)
+        print(lineSSIM)
+        log.write(lineSSIM)
+        lineMSE = "\nMSE: " + str(MSETotal/count)
+        log.write(lineMSE)
+        print(lineMSE)
+        linePSNR = "\nPSNR: " + str(10*math.log10(1/(MSETotal/count)))
+        print(linePSNR)
+        log.write(linePSNR)
+        print("---------")
+        log.write("\n---------")
+            # to here to obtain more detailed results
         log.close()
 
 
@@ -73,12 +75,12 @@ def compilePhotos():
     masterList = {}
 
     # Retrieve training and testing data
-    clearList = os.listdir(settings.clearDirectory)
-    hazyList = os.listdir(settings.hazyDirectory)
+    clearList = os.listdir(settings.clearTestDirectory)
+    hazyList = os.listdir(settings.hazyTestDirectory)
     for clearImg in clearList:
         masterList[clearImg] = []
     for hazyImg in hazyList:
-        ID = hazyImg.split("_")[0] + "_" + hazyImg.split("_")[1] + ".png"
+        ID = hazyImg.split("_")[0] + "_" + hazyImg.split("_")[1] + settings.fileExtension
         masterList[ID].append(hazyImg)
 
     # Sort data into lists
@@ -113,30 +115,11 @@ class datasetPhotos(torch.utils.data.Dataset):
     # Item Retrieval Function
     def __getitem__(self, item):
         clear, hazy = self.photoList[item]
-        clearImg = (torch.from_numpy((numpy.asarray(PIL.Image.open(settings.clearDirectory + "\\" + clear).resize((480, 640), PIL.Image.ANTIALIAS))/255.0))).float().permute(2, 0, 1)
-        hazyImg = (torch.from_numpy((numpy.asarray(PIL.Image.open(settings.hazyDirectory + "\\" + hazy).resize((480, 640),PIL.Image.ANTIALIAS)) / 255.0))).float().permute(2, 0, 1)
+        clearImg = (torch.from_numpy((numpy.asarray(PIL.Image.open(settings.clearTestDirectory + "\\" + clear).resize((480, 640), PIL.Image.ANTIALIAS))/255.0))).float().permute(2, 0, 1)
+        hazyImg = (torch.from_numpy((numpy.asarray(PIL.Image.open(settings.hazyTestDirectory + "\\" + hazy).resize((480, 640),PIL.Image.ANTIALIAS)) / 255.0))).float().permute(2, 0, 1)
         return clearImg, hazyImg
 
-r''' Custom SSIM calculation attempt, does not function correctly
-def customSSIMLoss(prediction, truth):
-    R = 1
-    meanx = torch.mean(prediction)
-    meany = torch.mean(truth)
-    variancex = torch.var(prediction)
-    variancey = torch.var(truth)
-    covariancexy = torch.sqrt(variancex) * torch.sqrt(variancey)
-    A = (2*meanx*meany) + ((0.01*R)**2)
-    B = 2*(covariancexy**2) + ((0.03*R)**2)
-    C = (meanx**2) + (meany**2)
-    C = C + (0.01*R)**2
-    D = (variancex**2) + (variancey**2)
-    D = D + (0.03*R)**2
-    E = (A*B)
-    F = (C*D)
-    val = E/F
-    return 1 - val
-'''
 
 if __name__ == "__main__":
     networkLayout.setup()
-    train()
+    test()

@@ -37,3 +37,7 @@ def setup():
 		os.mkdir(settings.clearDirectory)  # clear
 	if not (os.path.exists(settings.hazyDirectory)):
 		os.mkdir(settings.hazyDirectory)  # hazy
+	if not (os.path.exists(settings.clearTestDirectory)):
+		os.mkdir(settings.clearTestDirectory)  # clear test
+	if not (os.path.exists(settings.hazyTestDirectory)):
+		os.mkdir(settings.hazyTestDirectory)  # hazy test
