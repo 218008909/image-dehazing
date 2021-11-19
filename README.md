@@ -8,7 +8,6 @@ This project makes use of a CNN to reduce the effect of haze in provided images.
 * Installation of Python 3 (tested on 3.9)
 * Run `pip3 install -r requirements.txt` to fetch other dependencies
 
-
 ## Instructions
 * View `settings.py` to set up directories 
      for dehazing, place images in input directory
@@ -40,12 +39,15 @@ This project makes use of a CNN to reduce the effect of haze in provided images.
 ![_AAITS_Comparison20211106_184757](https://user-images.githubusercontent.com/75892147/142450278-43089710-865e-41f7-aaca-07fa56eaace8.jpg)
 ![_AAITS_Comparison20211106_184809](https://user-images.githubusercontent.com/75892147/142450385-bc2c1845-2a8c-43a6-bc08-870386505018.jpg)
 
-
-
 ## Other Scripts
 * `testModel.py` evaluates SSIM and PSNR over validation dataset
 * `trainVaryingParameters.py` trains several models using given parameter sets (could be more thorough if for loops were nested)
 * `networkLayout.py` defines the CNN architecture
+
+## Legacy Versions
+* SSIM calculation has been removed from the default version of this project
+* Instructions for how to use the previous version are in the `SSIM` directory
+* The reason for this removal has to do with editing source code for external libraries
 
 ## Notes
 This project was submitted as Final Computer Engineering Design Project for the University of KwaZulu-Natal in 2021.
