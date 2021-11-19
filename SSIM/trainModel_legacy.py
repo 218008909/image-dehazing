@@ -3,6 +3,7 @@ import math
 import numpy
 import os
 import PIL.Image
+import piq
 import random
 import torch
 import torch.nn
@@ -27,6 +28,7 @@ def train(bS=settings.batchSize, tR=settings.trainingRatio, cV=settings.clipValu
     # Define model evaluation criterion and optimizer (comment in chosen loss function)
     criterion = torch.nn.MSELoss().cuda()
         # criterion = torch.nn.HuberLoss().cuda()
+        # criterion = piq.SSIMLoss().cuda()
     optimizer = torch.optim.Adam(N.parameters(), lr=lR, weight_decay=wD)
     # Loop through epochs
     count = 0
@@ -50,7 +52,7 @@ def train(bS=settings.batchSize, tR=settings.trainingRatio, cV=settings.clipValu
             optimizer.step()
             # Display and Save, based on user settings
             if ((count % settings.displayPeriod) == 0):
-                lineIteration = "\nIteration: " + str(count) + " Loss: " + str(loss.item())
+                lineIteration = "\nIteration: " + str(count) + " Loss: " + str(loss.item()) + " SSIM: " + str(piq.ssim(dehazedImg, clearImg, data_range = 1).item())
                 print(lineIteration)
                 #log.write(lineIteration)
             if ((count % settings.savePeriod) == 0):
@@ -67,9 +69,13 @@ def train(bS=settings.batchSize, tR=settings.trainingRatio, cV=settings.clipValu
             dehazedImg = N(hazyImg)
             r'''    Optionally output testing set after each epoch
             import torchvision
-            torchvision.utils.save_image(torch.cat((hazyImg, dehazedImg, clearImg), 0), settings.testingDirectory+str(count)".jpg")
+            torchvision.utils.save_image(torch.cat((hazyImg, dehazedImg, clearImg), 0), settings.testingDirectory+str(count) + "SSIM__" + str(piq.ssim(dehazedImg, clearImg, data_range = 1).item()) + ".jpg")
             '''
+            SSIMTotal = SSIMTotal + piq.ssim(dehazedImg, clearImg, data_range = 1).item()
             MSETotal = MSETotal + criterion(dehazedImg, clearImg).item()
+        lineSSIM = "\nSSIM: " + str(SSIMTotal/countB)
+        print(lineSSIM)
+        log.write(lineSSIM)
         lineMSE = "\nMSE: " + str(MSETotal/countB)
         log.write(lineMSE)
         print(lineMSE)

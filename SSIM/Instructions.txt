@@ -1,0 +1,19 @@
+This project made use of the piq libraries to calculate SSIM.
+However, a small adjustment was made to enable this functionality.
+If you would like to use the version of this project which measures SSIM:
+* Rename trainModel_legacy.py and testModel_legacy.py to match
+	their counterparts in the main folder, 
+	(trainModel.py and testModel.py) and 
+	replace the original files with these.
+* Comment out line 53 of ssim.py
+	This can be found in the following directory
+	(PythonLocation)->Lib->site-packages->piq
+
+
+@misc{piq,
+  title={{PyTorch Image Quality}: Metrics and Measure for Image Quality Assessment},
+  url={https://github.com/photosynthesis-team/piq},
+  note={Open-source software available at https://github.com/photosynthesis-team/piq},
+  author={Sergey Kastryulin and Dzhamil Zakirov and Denis Prokopenko},
+  year={2019},
+}

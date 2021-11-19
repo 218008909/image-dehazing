@@ -3,6 +3,7 @@ import math
 import numpy
 import os
 import PIL.Image
+import piq
 import random
 import torch
 import torch.nn
@@ -25,6 +26,7 @@ def test():
     loaderTesting = torch.utils.data.DataLoader(datasetTesting, batch_size = settings.batchSize, shuffle = True, num_workers = settings.workerNum, pin_memory = True)
     # Define model evaluation criterion and optimizer (comment in chosen loss function)
     criterion = torch.nn.MSELoss().cuda()
+    # criterion = piq.SSIMLoss().cuda()
     # Loop through epochs
     count = 0
     models = os.listdir(settings.modelDirectory)
@@ -44,12 +46,16 @@ def test():
             dehazedImg = N(hazyImg)
             r'''    Optionally output testing set after each epoch
             import torchvision
-            torchvision.utils.save_image(torch.cat((hazyImg, dehazedImg, clearImg), 0), settings.testingDirectory+str(count) + ".jpg")
+            torchvision.utils.save_image(torch.cat((hazyImg, dehazedImg, clearImg), 0), settings.testingDirectory+str(count) + "SSIM__" + str(piq.ssim(dehazedImg, clearImg, data_range = 1).item()) + ".jpg")
             '''
+            SSIMTotal = SSIMTotal + piq.ssim(dehazedImg, clearImg, data_range = 1).item()
             MSETotal = MSETotal + criterion(dehazedImg, clearImg).item()
         # Save final model and output to log file
         # torch.save(N.state_dict(), settings.modelDirectory + "completeModel.pth")
             # Optionally indent from here
+        lineSSIM = "\nSSIM: " + str(SSIMTotal/count)
+        print(lineSSIM)
+        log.write(lineSSIM)
         lineMSE = "\nMSE: " + str(MSETotal/count)
         log.write(lineMSE)
         print(lineMSE)
