@@ -2,7 +2,7 @@
 # PyTorch Implementation
 
 ## Summary
-This project makes use of a CNN to reduce the effect of haze in provided images. While there is some aesthetic benefit, the prupose is to increase clarity to allow other image processing tasks to excel. The functions defined here can be easily-integrated in other workflows, or the program can be run as-is.
+This project makes use of a CNN to reduce the effect of haze in provided images. While there is some aesthetic benefit, the primary purpose is to increase image clarity, allowing other image processing tasks to excel. The functions defined here can be easily-integrated in other workflows, or the program can be run as-is.
 
 ## Prerequisites
 * Installation of Python 3 (tested on 3.9)
